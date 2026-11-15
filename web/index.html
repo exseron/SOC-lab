@@ -4,6 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Sentetik güvenlik olaylarını incelemek için SIEM laboratuvarı.">
 <title>SOC / LAB · SIEM Simülatörü</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%228%22 fill=%22%23292141%22/%3E%3Ctext x=%2216%22 y=%2223%22 font-size=%2220%22 text-anchor=%22middle%22 fill=%22%23beaaff%22%3E%E2%AC%A1%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="styles.css">
 <script defer src="data.js"></script><script defer src="exercises.js"></script><script defer src="app.js"></script>
 </head>
@@ -17,10 +18,10 @@
   <p>SALDIRI SENARYOLARI</p>
   <div id="scenario-nav"></div>
   </nav>
-  <div class="sidebar-bottom"><div class="environment"><i></i><div><strong>Simülasyon ortamı</strong><small>Sentetik veriler</small></div></div></div>
+  <div class="sidebar-bottom"><div class="progress" aria-live="polite"><div class="progress-head"><strong>İlerleme</strong><span id="progress-label"></span></div><div class="progress-bar" role="progressbar" id="progress-bar" aria-label="Kapatılan alarm oranı" aria-valuemin="0" aria-valuemax="100"><span id="progress-fill"></span></div><small id="progress-detail"></small></div><div class="environment"><i></i><div><strong>Simülasyon ortamı</strong><small>Sentetik veriler</small></div></div></div>
 </aside>
 <div class="workspace">
-<header class="top"><div class="crumb"><span>Çalışma Alanı</span><b aria-hidden="true">/</b><strong id="crumb">Genel Bakış</strong></div><div class="top-end"><span class="clock">◷ &nbsp; UTC</span><span class="avatar" title="Analist">A</span></div></header>
+<header class="top"><div class="crumb"><span>Çalışma Alanı</span><b aria-hidden="true">/</b><strong id="crumb">Genel Bakış</strong></div><div class="top-end"><span class="clock" id="clock" title="Gerçek UTC saati">◷ &nbsp; UTC</span><button type="button" class="ghost" id="export-report" title="Kaydedilen incelemeleri Markdown raporu olarak indir"><span aria-hidden="true">⇩</span> Rapor</button><button type="button" class="ghost" id="reset-progress" title="Tüm kayıtlı inceleme notlarını sil"><span aria-hidden="true">↺</span> Sıfırla</button><span class="avatar" title="Analist">A</span></div></header>
 <main>
 <section class="intro"><div><div class="eyebrow"><i></i> GÜVENLİK OPERASYONLARI</div><h1 id="title">Genel Bakış</h1><p id="subtitle">Sentetik güvenlik alarmlarını incele, logları ilişkilendir ve kararını kaydet.</p></div><div class="date"><span aria-hidden="true">▣</span> 15 Kas 2026 <span class="date-divider"></span><span>10:00–11:00 UTC</span></div></section>
 <section class="stats" id="stats" aria-label="Alarm özeti"></section>
@@ -29,7 +30,7 @@
 <section class="panel sources-panel"><div class="panel-top"><div><h2>Veri Kaynakları</h2><p>İncelemeye açık örnek loglar</p></div><span class="panel-icon" aria-hidden="true">◫</span></div><div id="sources"></div></section>
 </div>
 <section class="panel queue" aria-labelledby="queue-title">
-<div class="panel-top queue-top"><div><div class="queue-heading"><h2 id="queue-title">Alarm Kuyruğu</h2><span id="queue-count"></span></div><p>Kanıtları açmak için bir alarm seç.</p></div><div class="filters"><label class="search"><span aria-hidden="true">⌕</span><input type="search" id="search" placeholder="Alarm, IP, log ara..." aria-label="Alarm, IP veya log ara"></label><select id="severity" aria-label="Önem derecesi"><option value="">Tüm önem dereceleri</option><option value="critical">Kritik</option><option value="high">Yüksek</option><option value="medium">Orta</option></select></div></div>
+<div class="panel-top queue-top"><div><div class="queue-heading"><h2 id="queue-title">Alarm Kuyruğu</h2><span id="queue-count"></span></div><p>Kanıtları açmak için bir alarm seç.</p></div><div class="filters"><label class="search"><span aria-hidden="true">⌕</span><input type="search" id="search" placeholder="Alarm, IP, log ara... ( / )" aria-label="Alarm, IP veya log ara"></label><select id="severity" aria-label="Önem derecesi"><option value="">Tüm önem dereceleri</option><option value="critical">Kritik</option><option value="high">Yüksek</option><option value="medium">Orta</option></select><select id="status-filter" aria-label="Alarm durumu"><option value="">Tüm durumlar</option><option value="new">Yeni</option><option value="review">İnceleniyor</option><option value="closed">Kapatıldı</option><option value="open">Açık (yeni + inceleniyor)</option></select></div></div>
 <div class="table-scroll"><table><thead><tr><th>Saat <span>↓</span></th><th>Alarm</th><th>Önem</th><th>Kaynak IP</th><th>Hedef</th><th>Durum</th><th aria-label="Aç"></th></tr></thead><tbody id="rows"></tbody></table></div>
 <div class="queue-footer"><span id="queue-footer" aria-live="polite"></span><div class="paging" id="paging" hidden><button id="previous-page" aria-label="Önceki sayfa" type="button">‹</button><span id="page-label"></span><button id="next-page" aria-label="Sonraki sayfa" type="button">›</button></div></div>
 </section>
@@ -38,6 +39,6 @@
 <dialog id="case-dialog" aria-labelledby="case-title">
 <div class="case-head"><div><div class="eyebrow" id="case-id"></div><h2 id="case-title"></h2></div><button id="close-case" class="close" aria-label="Alarmı kapat">×</button></div>
 <div id="case-body"></div>
-<div class="case-actions"><label><span>Alarm durumu</span><select id="case-status"><option value="new">Yeni</option><option value="review">İnceleniyor</option><option value="closed">Kapatıldı</option></select></label><button id="save-case" class="primary">İncelemeyi Kaydet</button></div>
+<div class="case-actions"><small id="case-saved" class="case-saved"></small><label><span>Alarm durumu</span><select id="case-status"><option value="new">Yeni</option><option value="review">İnceleniyor</option><option value="closed">Kapatıldı</option></select></label><button id="save-case" class="primary" title="Ctrl+Enter">İncelemeyi Kaydet</button></div>
 </dialog>
 </body></html>
